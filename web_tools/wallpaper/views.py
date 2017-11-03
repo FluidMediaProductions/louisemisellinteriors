@@ -43,15 +43,10 @@ def visualize(request, id):
         wall_blur_draw.rectangle((wall_blur.size[0] - 30, 0, wall_blur.size[0], wall_blur.size[1]), (0, 0, 0, 128))
         wall_blur_blured = wall_blur.filter(ImageFilter.GaussianBlur(50))
         wall.paste(wall_blur_blured, (0, 0), wall_blur_blured)
-        file_name = '{}-{}.jpg'.format(wallpaper.id, int(time.time()))
-        full_path = os.path.join(settings.MEDIA_ROOT, file_name)
-        wall.save(full_path)
-        output = io.StringIO()
-        wall.save(output, format='JPG')
+        output = io.BytesIO()
+        wall.save(output, format='png')
         output.seek(0)
-        output_s = output.read()
-        b64 = base64.b64encode(output_s)
-        img = 'data:image/png;base64,{0}'.format(b64)
+        img = "data:image/png;base64," + base64.b64encode(output.getvalue()).decode()
         return render(request, 'wallpaper/visualized.html', {
             "wallpaper": wallpaper,
             "image": img
