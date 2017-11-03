@@ -1,0 +1,20 @@
+{% extends 'wallpaper/base.html' %}
+{% block main %}
+    <h3 class="text-center">Visualizaion of {{ wallpaper.name }}</h3>
+    <table class="table">
+      <tbody>
+        <tr>
+          <th scope="row">Length required</th>
+          <td>{{ data.total_length }}m</td>
+        </tr>
+        <tr>
+          <th scope="row">Rolls required</th>
+          <td>{{ data.total_rolls }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Total cost</th>
+          <td>£{{ data.total_cost }}</td>
+        </tr>
+      </tbody>
+    </table>
+{% endblock %}

@@ -1,5 +1,6 @@
 import base64
 import io
+import math
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from django.contrib.auth.decorators import login_required
 from PIL import Image, ImageDraw, ImageFilter
@@ -74,4 +75,30 @@ def visualize(request, id):
         return render(request, 'wallpaper/visualized.html', {
             "wallpaper": wallpaper,
             "image": img
+        })
+
+
+@login_required
+def estimate(request, id):
+    wallpaper = get_object_or_404(Wallpaper, id=id)
+    if request.method == "GET":
+        return render(request, 'wallpaper/estimate.html', {
+            "wallpaper": wallpaper
+        })
+    elif request.method == "POST":
+        wall_width = int(request.POST['wall_width'])
+        wall_height = int(request.POST['wall_height'])
+        num_width = math.ceil(wall_width / wallpaper.width)
+        num_height = math.ceil(wall_height / wallpaper.repeat)
+        per_strip = num_height * wallpaper.repeat
+        total_length = per_strip * num_width
+        total_rolls = math.ceil(total_length / wallpaper.roll_length)
+        total_cost = total_rolls * wallpaper.price
+        return render(request, 'wallpaper/estimated.html', {
+            "wallpaper": wallpaper,
+            "data": {
+                "total_length": total_length/100,
+                "total_rolls": total_rolls,
+                "total_cost": total_cost
+            }
         })
