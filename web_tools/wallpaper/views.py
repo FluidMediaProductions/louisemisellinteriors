@@ -27,10 +27,15 @@ def add(request):
         if form.is_valid():
             form.save()
             return redirect(resolve_url('wallpapers'))
-        print(form.errors)
         return render(request, 'wallpaper/add.html', {
             "form": form
         })
+
+
+def delete(request, id):
+        wallpaper = get_object_or_404(Wallpaper, id=id)
+        wallpaper.delete()
+        return redirect(resolve_url('wallpapers'))
 
 
 def visualize(request, id):

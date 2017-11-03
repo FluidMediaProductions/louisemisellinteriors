@@ -4,7 +4,7 @@
         <a href="{% url 'add_wallpaper' %}" class="btn btn-success">Add wallpaper</a>
     </div>
     {% for wallpaper in wallpapers %}
-        <div class="card" style="width: 250px">
+        <div class="card float-left mr-3" style="width: 250px;">
           <img class="card-img-top" src="{{ wallpaper.image.url }}">
           <div class="card-body">
             <h4 class="card-title">{{ wallpaper.name }}</h4>
@@ -27,6 +27,7 @@
                 </table>
             </p>
             <a href="{% url 'visualize' wallpaper.id %}" class="btn btn-primary">Visualize</a>
+            <a href="{% url 'delete_wallpaper' wallpaper.id %}" class="btn btn-danger">Delete</a>
           </div>
         </div>
     {% endfor %}
