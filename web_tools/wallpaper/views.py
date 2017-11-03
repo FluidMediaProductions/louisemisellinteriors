@@ -2,10 +2,10 @@ import os
 import time
 import base64
 import io
-from django.conf import settings
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from PIL import Image, ImageDraw, ImageFilter
 from .models import Wallpaper
+from .forms import WallpaperForm
 
 
 def index(request):
@@ -14,6 +14,23 @@ def index(request):
     return render(request, 'wallpaper/index.html', {
         "wallpapers": wallpapers
     })
+
+
+def add(request):
+    if request.method == "GET":
+        form = WallpaperForm()
+        return render(request, 'wallpaper/add.html', {
+            "form": form
+        })
+    elif request.method == "POST":
+        form = WallpaperForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect(resolve_url('wallpapers'))
+        print(form.errors)
+        return render(request, 'wallpaper/add.html', {
+            "form": form
+        })
 
 
 def visualize(request, id):

@@ -1,5 +1,8 @@
 {% extends 'wallpaper/base.html' %}
 {% block main %}
+    <div class="pb-3 text-center">
+        <a href="{% url 'add_wallpaper' %}" class="btn btn-success">Add wallpaper</a>
+    </div>
     {% for wallpaper in wallpapers %}
         <div class="card" style="width: 250px">
           <img class="card-img-top" src="{{ wallpaper.image.url }}">
