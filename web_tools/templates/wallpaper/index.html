@@ -1,0 +1,30 @@
+{% extends 'wallpaper/base.html' %}
+{% block main %}
+    {% for wallpaper in wallpapers %}
+        <div class="card" style="width: 250px">
+          <img class="card-img-top" src="{{ wallpaper.image.url }}">
+          <div class="card-body">
+            <h4 class="card-title">{{ wallpaper.name }}</h4>
+            <p class="card-text">
+                <table class="table">
+                  <tbody>
+                    <tr>
+                      <th scope="row">Width</th>
+                      <td>{{ wallpaper.width }}cm</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Roll length</th>
+                      <td>{{ wallpaper.roll_length }}m</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Pattern repeat</th>
+                      <td>{{ wallpaper.repeat }}cm</td>
+                    </tr>
+                  </tbody>
+                </table>
+            </p>
+            <a href="{% url 'visualize' wallpaper.id %}" class="btn btn-primary">Visualize</a>
+          </div>
+        </div>
+    {% endfor %}
+{% endblock %}
