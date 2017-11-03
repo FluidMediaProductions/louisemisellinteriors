@@ -92,7 +92,8 @@ def estimate(request, id):
         num_height = math.ceil(wall_height / wallpaper.repeat)
         per_strip = num_height * wallpaper.repeat
         total_length = per_strip * num_width
-        total_rolls = math.ceil(total_length / wallpaper.roll_length)
+        total_length = total_length * 1.10
+        total_rolls = math.ceil(total_length / (wallpaper.roll_length*100))
         total_cost = total_rolls * wallpaper.price
         return render(request, 'wallpaper/estimated.html', {
             "wallpaper": wallpaper,
