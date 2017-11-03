@@ -1,0 +1,5 @@
+Django
+Pillow
+django-forms-bootstrap
+gunicorn
+psycopg2

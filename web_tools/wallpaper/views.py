@@ -1,5 +1,3 @@
-import os
-import time
 import base64
 import io
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
