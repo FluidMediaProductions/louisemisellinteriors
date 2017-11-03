@@ -7,6 +7,7 @@ class Wallpaper(models.Model):
     width = models.IntegerField('Width (cm)')
     roll_length = models.FloatField('Roll length (m)')
     repeat = models.IntegerField('Pattern repeat (cm)')
+    price = models.FloatField('Price per roll')
 
     @property
     def height(self):
