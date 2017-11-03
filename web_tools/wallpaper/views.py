@@ -3,19 +3,21 @@ import time
 import base64
 import io
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
+from django.contrib.auth.decorators import login_required
 from PIL import Image, ImageDraw, ImageFilter
 from .models import Wallpaper
 from .forms import WallpaperForm
 
 
+@login_required
 def index(request):
     wallpapers = Wallpaper.objects.all()
-    print(wallpapers)
     return render(request, 'wallpaper/index.html', {
         "wallpapers": wallpapers
     })
 
 
+@login_required
 def add(request):
     if request.method == "GET":
         form = WallpaperForm()
@@ -32,12 +34,14 @@ def add(request):
         })
 
 
+@login_required
 def delete(request, id):
         wallpaper = get_object_or_404(Wallpaper, id=id)
         wallpaper.delete()
         return redirect(resolve_url('wallpapers'))
 
 
+@login_required
 def visualize(request, id):
     wallpaper = get_object_or_404(Wallpaper, id=id)
     if request.method == "GET":
