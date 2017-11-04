@@ -6,31 +6,30 @@
             <img src="{{ wallpaper.image.url }}" alt="" style="width: 100%">
         </div>
         <div class="col-8">
-            <div class="col-8">
-                <form action="" method="post" class="text-center">
-                    <table class="table">
-                        <tbody>
-                        <tr>
-                            <th scope="row">Width</th>
-                            <td>{{ wallpaper.width }}cm</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Height</th>
-                            <td>{{ wallpaper.height|floatformat:0 }}cm</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Wall height</th>
-                            <td><input type="number" name="wall_height">cm</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Wall width</th>
-                            <td><input type="number" name="wall_width">cm</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    {% csrf_token %}
-                    <button class="btn btn-primary" type="submit">Visualize</button>
-                </form>
-            </div>
+            <form action="" method="post" class="text-center">
+                <table class="table">
+                    <tbody>
+                    <tr>
+                        <th scope="row">Width</th>
+                        <td>{{ wallpaper.width }}cm</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Height</th>
+                        <td>{{ wallpaper.repeat|floatformat:0 }}cm</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Wall height</th>
+                        <td><input type="number" name="wall_height">cm</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Wall width</th>
+                        <td><input type="number" name="wall_width">cm</td>
+                    </tr>
+                    </tbody>
+                </table>
+                {% csrf_token %}
+                <button class="btn btn-primary" type="submit">Visualize</button>
+            </form>
         </div>
+    </div>
 {% endblock %}

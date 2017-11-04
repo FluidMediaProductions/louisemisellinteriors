@@ -1,0 +1,39 @@
+{% extends 'curtain/base.html' %}
+{% block main %}
+    <h3 class="text-center">Estimate {{ fabric.name }}</h3>
+    <div class="row">
+        <div class="col-4">
+            <img src="{{ fabric.image.url }}" alt="" style="width: 100%">
+        </div>
+        <div class="col-8">
+            <form action="" method="post" class="text-center">
+                <table class="table">
+                    <tbody>
+                    <tr>
+                        <th scope="row">Width</th>
+                        <td>{{ fabric.width }}cm</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Repeat</th>
+                        <td>{{ fabric.repeat|floatformat:0 }}cm</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Pole length</th>
+                        <td><input type="number" name="pole_length">cm</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Fullness</th>
+                        <td><input type="number" name="fullness">x</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Drop</th>
+                        <td><input type="number" name="drop">cm</td>
+                    </tr>
+                    </tbody>
+                </table>
+                {% csrf_token %}
+                <button class="btn btn-primary" type="submit">Estimate</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

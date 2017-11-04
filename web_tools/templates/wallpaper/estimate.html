@@ -6,31 +6,83 @@
             <img src="{{ wallpaper.image.url }}" alt="" style="width: 100%">
         </div>
         <div class="col-8">
-            <div class="col-8">
-                <form action="" method="post" class="text-center">
-                    <table class="table">
-                        <tbody>
-                        <tr>
-                            <th scope="row">Width</th>
-                            <td>{{ wallpaper.width }}cm</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Height</th>
-                            <td>{{ wallpaper.height|floatformat:0 }}cm</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Wall height</th>
-                            <td><input type="number" name="wall_height">cm</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Wall width</th>
-                            <td><input type="number" name="wall_width">cm</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    {% csrf_token %}
-                    <button class="btn btn-primary" type="submit">Estimate</button>
-                </form>
-            </div>
+            <form action="" method="post" class="text-center">
+                <table class="table">
+                    <tbody>
+                    <tr>
+                        <th scope="row">Width</th>
+                        <td>{{ wallpaper.width }}cm</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Repeat</th>
+                        <td>{{ wallpaper.repeat|floatformat:0 }}cm</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Wall height</th>
+                        <td><input type="number" name="wall_height">cm</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Wall width</th>
+                        <td><input type="number" name="wall_width">cm</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <h4>Cutouts (door, windows, etc)</h4>
+                <table id="cutouts" class="table">
+                    <thead>
+                    <tr>
+                        <th>Width (cm)</th>
+                        <th>Height (cm)</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="cutout">
+                        <td><input type="number"></td>
+                        <td><input type="number"></td>
+                        <td>
+                            <button class="btn btn-danger">X</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <button id="add-cutout" class="btn btn-success mb-3">Add cutout</button>
+                <input type="hidden" id="cutout-data" name="cutouts">
+                <br>
+                <script>
+                    const $cutoutRow =
+                        $(`<tr class="cutout">
+                                <td><input type="number"></td>
+                                <td><input type="number"></td>
+                                <td>
+                                    <button class="btn btn-danger">X</button>
+                                </td>
+                            </tr>`);
+                    $(function () {
+                        $("#add-cutout").click(function () {
+                            $("#cutouts").find("tbody").append($cutoutRow.clone());
+                            return false;
+                        });
+                        $(document).on("click", ".cutout button", function () {
+                            $(this).parent().parent().remove();
+                            return false;
+                        });
+                        $("form").submit(function () {
+                            let cutouts = [];
+                            $("#cutouts").find("tbody tr").each(function () {
+                                let cutout = $(this);
+                                cutouts.push({
+                                    width: cutout.find("td:nth-child(1) input").val(),
+                                    height: cutout.find("td:nth-child(2) input").val()
+                                });
+                            });
+                            $("#cutout-data").val(JSON.stringify(cutouts));
+                        });
+                    });
+                </script>
+                {% csrf_token %}
+                <button class="btn btn-primary" type="submit">Estimate</button>
+            </form>
         </div>
+    </div>
 {% endblock %}

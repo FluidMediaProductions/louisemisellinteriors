@@ -1,6 +1,8 @@
 import base64
 import io
 import math
+import json
+from decimal import Decimal
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from django.contrib.auth.decorators import login_required
 from PIL import Image, ImageDraw, ImageFilter
@@ -86,14 +88,31 @@ def estimate(request, id):
             "wallpaper": wallpaper
         })
     elif request.method == "POST":
-        wall_width = int(request.POST['wall_width'])
-        wall_height = int(request.POST['wall_height'])
-        num_width = math.ceil(wall_width / wallpaper.width)
-        num_height = math.ceil(wall_height / wallpaper.repeat)
+        try:
+            wall_width = int(request.POST['wall_width'])
+            wall_height = int(request.POST['wall_height'])
+        except ValueError:
+            return render(request, 'wallpaper/estimate.html', {
+                "wallpaper": wallpaper
+            })
+        cutouts = json.loads(request.POST['cutouts'])
+        num_width = int(math.ceil(wall_width / wallpaper.width))
+        num_height = int(math.ceil(wall_height / wallpaper.repeat))
         per_strip = num_height * wallpaper.repeat
         total_length = per_strip * num_width
-        total_length = total_length * 1.10
-        total_rolls = math.ceil(total_length / (wallpaper.roll_length*100))
+        for cutout in cutouts:
+            try:
+                width = int(cutout['width'])
+                height = int(cutout['height'])
+            except ValueError:
+                continue
+            cover_width = int(math.floor(width / wallpaper.width))
+            cover_height = int(math.floor(height / wallpaper.repeat))
+            for x in range(0, cover_width):
+                for y in range(0, cover_height):
+                    total_length -= wallpaper.repeat
+        total_length = Decimal(total_length) * Decimal('1.10')
+        total_rolls = math.ceil(total_length / Decimal(wallpaper.roll_length*100))
         total_cost = total_rolls * wallpaper.price
         return render(request, 'wallpaper/estimated.html', {
             "wallpaper": wallpaper,

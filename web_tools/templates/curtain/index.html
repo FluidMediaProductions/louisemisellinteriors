@@ -1,0 +1,30 @@
+{% extends 'curtain/base.html' %}
+{% block main %}
+    <div class="pb-3 text-center">
+        <a href="{% url 'add_fabric' %}" class="btn btn-success">Add fabric</a>
+    </div>
+    {% for fabric in fabrics %}
+        <div class="card float-left mr-3" style="width: 250px;">
+          <img class="card-img-top" src="{{ fabric.image.url }}">
+          <div class="card-body">
+            <h4 class="card-title">{{ fabric.name }}</h4>
+            <p class="card-text">
+                <table class="table">
+                  <tbody>
+                    <tr>
+                      <th scope="row">Width</th>
+                      <td>{{ fabric.width }}cm</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Pattern repeat</th>
+                      <td>{{ fabric.repeat }}cm</td>
+                    </tr>
+                  </tbody>
+                </table>
+            </p>
+            <a href="{% url 'estimate_curtain' fabric.id %}" class="btn btn-primary mt-1">Estimate</a>
+            <a href="{% url 'delete_fabric' fabric.id %}" class="btn btn-danger mt-1">Delete</a>
+          </div>
+        </div>
+    {% endfor %}
+{% endblock %}
