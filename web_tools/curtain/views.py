@@ -59,7 +59,7 @@ def estimate(request, id):
         per_strip = num_height * fabric.repeat
         total_length = per_strip * num_width
         total_length = (Decimal(total_length) * Decimal('1.10'))/100
-        total_cost = total_length * fabric.price
+        total_cost = total_length * Decimal(fabric.price)
         return render(request, 'curtain/estimated.html', {
             "fabric": fabric,
             "data": {
