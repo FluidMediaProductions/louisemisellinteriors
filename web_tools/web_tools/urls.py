@@ -26,7 +26,8 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^wallpapers/', include('wallpaper.urls')),
     url(r'^curtains/', include('curtain.urls')),
-    url(r'^$', views.index)
+    url(r'^room_creator/', include('room_creator.urls')),
+    url(r'^$', views.index, name='index')
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

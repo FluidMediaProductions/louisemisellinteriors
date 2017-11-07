@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container-fluid text-center my-3">
+        <h2 class="text-center">Room creator</h2>
+        <div class="row">
+            <div class="col-3">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group row">
+                            <label class="col-6 col-form-label" for="wallHeight">Wall height (cm): </label>
+                            <input class="col-6 form-control" type="number" id="wallHeight">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <button class="btn btn-success" id="save">Save</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-9">
+                <div class="row">
+                    <div class="col-12">
+                        <canvas class="border border-dark" id="canvas" width="1000" height="600"></canvas>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-3">
+                        <button class="btn btn-dark" id="zoomIn">+</button>
+                        <button class="btn btn-dark" id="zoomOut">-</button>
+                        <span id="scale"></span>
+                    </div>
+                    <div class="col-3">
+                        <span id="data-display"></span>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group row">
+                            <label class="col-4 col-form-label" for="len">Input length (cm): </label>
+                            <input class="col-6 form-control" type="number" id="len">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <iframe src="" frameborder="0" style="display: none;" id="iframe"></iframe>
+    <script>
+
+        let walls = [];
+        let scaleFactor = 1;
+        let state = {
+            drawingWall: false,
+            selectedWall: null,
+            startX: 0,
+            startY: 0,
+            curX: 0,
+            curY: 0,
+            snapX: 0,
+            snapY: 0
+        };
+
+        function eventGetXY(e, canvas) {
+            let x;
+            let y;
+            if (e.pageX || e.pageY) {
+                x = e.pageX;
+                y = e.pageY;
+            }
+            else {
+                x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+            x -= canvas.getBoundingClientRect().left;
+            y -= canvas.getBoundingClientRect().top;
+            const doc = document.documentElement;
+            const left = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
+            const top = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+            x -= left;
+            y -= top;
+            return {
+                x: x,
+                y: y
+            };
+        }
+
+        window.onload = function () {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const virtCanvas = document.createElement('canvas');
+            virtCanvas.height = 600;
+            virtCanvas.width = 600;
+            const virtCtx = virtCanvas.getContext('2d');
+            const dataDisplay = document.getElementById('data-display');
+            const scaleDisplay = document.getElementById('scale');
+            const lenBox = document.getElementById('len');
+            const zoomOutBtn = document.getElementById('zoomOut');
+            const zoomInBtn = document.getElementById('zoomIn');
+            const wallHeightBox = document.getElementById('wallHeight');
+            const saveBtn = document.getElementById('save');
+            const iframe = document.getElementById("iframe");
+
+            canvas.onmousemove = function (event) {
+                state.curX = eventGetXY(event, canvas).x;
+                state.curY = eventGetXY(event, canvas).y;
+                snapLine();
+            };
+            canvas.onclick = function (event) {
+                if (!state.drawingWall) {
+                    state.startX = state.curX;
+                    state.startY = state.curY;
+                    const wallClick = detectWallClick();
+                    if (wallClick === null) {
+                        if (state.selectedWall === null) {
+                            state.drawingWall = true;
+                            snapStart();
+                            lenBox.focus();
+                            lenBox.value = "";
+                        }
+                        state.selectedWall = null;
+                    } else {
+                        if (snapStart() && state.selectedWall === null) {
+                            state.drawingWall = true;
+                            lenBox.focus();
+                            lenBox.value = "";
+                        } else {
+                            state.selectedWall = wallClick;
+                        }
+                    }
+                } else {
+                    state.drawingWall = false;
+                    walls.push([[state.startX * (1 / scaleFactor), state.startY * (1 / scaleFactor)],
+                        [state.snapX * (1 / scaleFactor), state.snapY * (1 / scaleFactor)]]);
+                }
+            };
+
+            document.onkeypress = function (e) {
+                e = e || window.event;
+                if (e.keyCode === 46) {
+                    if (state.selectedWall !== null) {
+                        walls.splice(state.selectedWall, 1);
+                        state.selectedWall = null;
+                    }
+                }
+            };
+            lenBox.onkeypress = function (e) {
+                e = e || window.event;
+                if (e.keyCode === 13) {
+                    if (state.drawingWall) {
+                        const len = parseInt(lenBox.value) * scaleFactor;
+                        const delta_x = state.snapX - state.startX;
+                        const delta_y = (state.snapY - state.startY);
+                        const theta = Math.atan2(delta_y, delta_x);
+                        const endX = state.startX + len * Math.cos(theta);
+                        const endY = state.startY + len * Math.sin(theta);
+                        state.drawingWall = false;
+                        walls.push([[state.startX * (1 / scaleFactor), state.startY * (1 / scaleFactor)],
+                            [endX * (1 / scaleFactor), endY * (1 / scaleFactor)]]);
+                    }
+                }
+            };
+
+            zoomInBtn.onclick = function () {
+                scaleFactor += 0.1;
+                return false;
+            };
+            zoomOutBtn.onclick = function () {
+                scaleFactor -= 0.1;
+                return false;
+            };
+
+            saveBtn.onclick = function () {
+                let outWalls = JSON.parse(JSON.stringify(walls.slice()));
+                outWalls.forEach(function (wall, w) {
+                    wall.forEach(function (point, p) {
+                        point.forEach(function (coord, c) {
+                            outWalls[w][p][c] = coord;
+                        });
+                    });
+                });
+                if (outWalls.length) {
+                    const wallHeight = parseInt(wallHeightBox.value);
+                    if (wallHeight) {
+                        const outData = {
+                            floorplan: outWalls,
+                            wall_height: wallHeight
+                        };
+                        iframe.setAttribute("src", "http://148.251.235.232:8006/plan?data=" +
+                            encodeURIComponent(JSON.stringify(outData)));
+                    } else {
+                        alert("Please insert wall height");
+                    }
+                } else {
+                    alert("Please draw some walls");
+                }
+                return false;
+            };
+
+            function detectWallClick() {
+                for (const w in walls) {
+                    const wall = walls[w];
+                    virtCtx.clearRect(0, 0, virtCanvas.width, virtCanvas.height);
+                    virtCtx.beginPath();
+                    virtCtx.lineWidth = 5;
+                    virtCtx.moveTo(wall[0][0] * scaleFactor, wall[0][1] * scaleFactor);
+                    virtCtx.lineTo(wall[1][0] * scaleFactor, wall[1][1] * scaleFactor);
+                    virtCtx.closePath();
+                    virtCtx.stroke();
+                    if (virtCtx.isPointInStroke(state.curX, state.curY)) {
+                        return w;
+                    }
+                }
+                return null;
+            }
+
+            function snapStart() {
+                for (const w in walls) {
+                    const wall = walls[w];
+                    for (const p in wall) {
+                        const point = wall[p];
+                        if (Math.hypot(point[0] * scaleFactor - state.startX, point[1] * scaleFactor - state.startY) < 10) {
+                            state.startX = point[0] * scaleFactor;
+                            state.startY = point[1] * scaleFactor;
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            function snapLine() {
+                for (const w in walls) {
+                    const wall = walls[w];
+                    for (const p in wall) {
+                        const point = wall[p];
+                        if (Math.hypot(point[0] * scaleFactor - state.curX, point[1] * scaleFactor - state.curY) < 10) {
+                            state.snapX = point[0] * scaleFactor;
+                            state.snapY = point[1] * scaleFactor;
+                            return;
+                        }
+                    }
+                }
+                if (((state.curX - state.startX) > 10) || ((state.curX - state.startX) < -10)) {
+                    state.snapX = state.curX;
+                } else {
+                    state.snapX = state.startX;
+                    state.snapY = Math.round(state.curY);
+                }
+                if (((state.curY - state.startY) > 10) || ((state.curY - state.startY) < -10)) {
+                    state.snapY = state.curY;
+                } else {
+                    state.snapY = state.startY;
+                }
+            }
+
+            function calcDistance() {
+                return Math.hypot(state.snapX - state.startX, state.snapY - state.startY);
+            }
+
+            function drawCanvas() {
+                scaleDisplay.innerText = "Scale: " + scaleFactor.toFixed(1);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (state.drawingWall) {
+                    ctx.beginPath();
+                    ctx.lineWidth = 7;
+                    ctx.strokeStyle = "rgb(0, 0, 0)";
+                    ctx.moveTo(state.startX, state.startY);
+                    ctx.lineTo(state.snapX, state.snapY);
+                    ctx.closePath();
+                    ctx.stroke();
+                    dataDisplay.innerText = "Length: " + (calcDistance() * (1 / scaleFactor)).toFixed(0) + "cm";
+                } else {
+                    dataDisplay.innerText = "";
+                }
+                for (const w in walls) {
+                    const wall = walls[w];
+                    ctx.beginPath();
+                    ctx.lineWidth = 7;
+                    if (w === state.selectedWall) {
+                        ctx.strokeStyle = "rgb(255, 128, 128)";
+                    } else {
+                        ctx.strokeStyle = "rgb(0, 0, 0)";
+                    }
+                    ctx.moveTo(wall[0][0] * scaleFactor, wall[0][1] * scaleFactor);
+                    ctx.lineTo(wall[1][0] * scaleFactor, wall[1][1] * scaleFactor);
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+                requestAnimationFrame(drawCanvas);
+            }
+
+            requestAnimationFrame(drawCanvas);
+        };
+    </script>
+{% endblock %}
