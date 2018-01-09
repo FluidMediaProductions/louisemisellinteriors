@@ -1,0 +1,72 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: web-tools
+  namespace: lmi
+  labels:
+    app: web_tools
+spec:
+  rules:
+  - host: tools.louisemisellinteriors.co.uk
+    http:
+      paths:
+      - path: "/"
+        backend:
+          serviceName: nginx
+          servicePort: 8000
+---
+kind: Service 
+apiVersion: v1  
+metadata:   
+  name: nginx
+  namespace: lmi  
+  labels:
+    app: web_tools
+    tier: nginx
+spec:  
+  ports:
+  - protocol: TCP
+    port: 8000 
+    targetPort: 8000
+  selector:
+    app: web_tools  
+    tier: nginx 
+  type: ClusterIP
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: lmi
+spec:
+  selector:
+    matchLabels:
+      app: web_tools
+      tier: nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: web_tools
+        tier: nginx
+    spec:
+      volumes:
+      - name: static-data
+        persistentVolumeClaim:
+          claimName: django-static-pv-claim
+      - name: media-data
+        persistentVolumeClaim:
+          claimName: django-media-pv-claim
+      containers:
+      - name: nginx
+        image: evilben/lmi:nginx
+        ports:
+        - containerPort: 8000
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: static-data
+          mountPath: /static
+        - name: media-data
+          mountPath: /media
+
+

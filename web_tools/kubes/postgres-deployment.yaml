@@ -1,0 +1,56 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgres
+  namespace: lmi
+  labels:
+    app: web_tools
+    tier: postgres
+spec:
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+  selector:
+    app: web_tools
+    tier: postgres
+  type: ClusterIP
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: lmi
+spec:
+  selector:
+    matchLabels:
+      app: web_tools
+      tier: postgres
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: web_tools
+        tier: postgres
+    spec:
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: django-postgres-pv-claim
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+          protocol: TCP
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-pass
+              key: pass
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        imagePullPolicy: Always
+

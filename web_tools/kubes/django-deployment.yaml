@@ -1,0 +1,67 @@
+kind: Service 
+apiVersion: v1  
+metadata:   
+  name: django  
+  namespace: lmi  
+  labels:
+    app: web_tools
+    tier: django
+spec:  
+  ports:
+  - protocol: TCP
+    port: 8000 
+    targetPort: 8000
+  selector:
+    app: web_tools  
+    tier: django 
+  type: ClusterIP
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: django
+  namespace: lmi
+spec:
+  selector:
+    matchLabels:
+      app: web_tools
+      tier: django
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: web_tools
+        tier: django
+    spec:
+      volumes:
+      - name: static-data
+        persistentVolumeClaim:
+          claimName: django-static-pv-claim
+      - name: media-data
+        persistentVolumeClaim:
+          claimName: django-media-pv-claim
+      containers:
+      - name: django
+        image: evilben/lmi:django
+        ports:
+        - containerPort: 8000
+        imagePullPolicy: Always
+        env:
+        - name: DB_HOST
+          value: postgres
+        - name: DB_USER
+          value: postgres
+        - name: DB_NAME
+          value: postgres
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: postgres-pass
+              key: pass
+        volumeMounts:
+        - name: static-data
+          mountPath: /code/static
+        - name: media-data
+          mountPath: /code/media
+
+
